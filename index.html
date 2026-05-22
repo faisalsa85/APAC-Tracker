@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>APAC Payment Providers Tracker</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --font-sans:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  --color-bg:#ffffff;
+  --color-bg-secondary:#f5f5f3;
+  --color-bg-tertiary:#eeede9;
+  --color-text-primary:#1a1a18;
+  --color-text-secondary:#5f5e5a;
+  --color-text-tertiary:#888780;
+  --color-border:rgba(0,0,0,0.12);
+  --color-border-hover:rgba(0,0,0,0.25);
+  --radius-md:8px;
+  --radius-lg:12px;
+}
+@media(prefers-color-scheme:dark){
+  :root{
+    --color-bg:#1c1c1a;
+    --color-bg-secondary:#242422;
+    --color-bg-tertiary:#2c2c2a;
+    --color-text-primary:#f0efe9;
+    --color-text-secondary:#a8a79f;
+    --color-text-tertiary:#6e6d68;
+    --color-border:rgba(255,255,255,0.1);
+    --color-border-hover:rgba(255,255,255,0.22);
+  }
+}
+body{font-family:var(--font-sans);background:var(--color-bg-tertiary);color:var(--color-text-primary);min-height:100vh;padding:2rem 1rem;}
+.wrapper{max-width:860px;margin:0 auto;}
+.top-bar{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:1.5rem;flex-wrap:wrap;gap:12px;}
+.top-bar h1{font-size:22px;font-weight:500;color:var(--color-text-primary);}
+.top-bar p{font-size:13px;color:var(--color-text-secondary);margin-top:3px;}
+.filters{display:flex;gap:8px;flex-wrap:wrap;}
+.filter-btn{font-size:12px;padding:5px 13px;border-radius:20px;border:0.5px solid var(--color-border-hover);background:transparent;color:var(--color-text-secondary);cursor:pointer;transition:all 0.15s;font-family:var(--font-sans);}
+.filter-btn.active{background:var(--color-text-primary);color:var(--color-bg);border-color:var(--color-text-primary);}
+.metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-bottom:1.5rem;}
+.metric{background:var(--color-bg-secondary);border-radius:var(--radius-md);padding:14px 16px;}
+.metric-label{font-size:11px;color:var(--color-text-tertiary);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:6px;}
+.metric-val{font-size:26px;font-weight:500;color:var(--color-text-primary);}
+.metric-sub{font-size:11px;color:var(--color-text-secondary);margin-top:3px;}
+.team-bar{display:flex;align-items:center;gap:8px;margin-bottom:1.5rem;flex-wrap:wrap;}
+.team-bar-label{font-size:11px;font-weight:500;text-transform:uppercase;letter-spacing:0.07em;color:var(--color-text-tertiary);}
+.team-tag{display:inline-flex;align-items:center;padding:4px 12px;border-radius:20px;font-size:12px;font-weight:500;}
+.add-member-btn{font-size:12px;padding:4px 12px;border-radius:20px;border:0.5px dashed var(--color-border-hover);background:none;color:var(--color-text-tertiary);cursor:pointer;font-family:var(--font-sans);transition:all 0.15s;}
+.add-member-btn:hover{color:var(--color-text-secondary);}
+.section-label{font-size:11px;font-weight:500;text-transform:uppercase;letter-spacing:0.07em;color:var(--color-text-tertiary);margin-bottom:10px;}
+.project-list{display:flex;flex-direction:column;gap:10px;margin-bottom:1rem;}
+.card{background:var(--color-bg);border:0.5px solid var(--color-border);border-radius:var(--radius-lg);padding:16px 18px;transition:border-color 0.15s;}
+.card:hover{border-color:var(--color-border-hover);}
+.card-header{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:10px;}
+.card-title{font-size:14px;font-weight:500;color:var(--color-text-primary);}
+.card-note{font-size:12px;color:var(--color-text-secondary);margin-top:4px;line-height:1.5;}
+.card-actions-top{display:flex;gap:6px;flex-shrink:0;}
+.icon-btn{background:none;border:none;cursor:pointer;color:var(--color-text-tertiary);padding:2px;display:flex;align-items:center;transition:color 0.15s;}
+.icon-btn:hover{color:var(--color-text-secondary);}
+.badges{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-bottom:2px;}
+.badge{font-size:11px;padding:3px 9px;border-radius:20px;font-weight:500;white-space:nowrap;}
+.badge-critical{background:#FCEBEB;color:#A32D2D;}
+.badge-high{background:#FAEEDA;color:#854F0B;}
+.badge-medium{background:#E6F1FB;color:#185FA5;}
+.badge-low{background:#EAF3DE;color:#3B6D11;}
+.badge-status-done{background:#EAF3DE;color:#3B6D11;}
+.badge-status-inprog{background:#E1F5EE;color:#0F6E56;}
+.badge-status-blocked{background:#FCEBEB;color:#A32D2D;}
+.badge-status-review{background:#EEEDFE;color:#534AB7;}
+.badge-status-todo{background:#F1EFE8;color:#5F5E5A;}
+.progress-bar{height:4px;background:var(--color-bg-secondary);border-radius:2px;margin:10px 0 8px;overflow:hidden;}
+.progress-fill{height:100%;border-radius:2px;}
+.card-footer{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;}
+.owner-row{display:flex;align-items:center;gap:7px;font-size:12px;color:var(--color-text-secondary);}
+.av{width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:500;flex-shrink:0;}
+.toggle-actions-btn{font-size:11px;color:var(--color-text-tertiary);cursor:pointer;background:none;border:none;font-family:var(--font-sans);padding:0;}
+.toggle-actions-btn:hover{color:var(--color-text-secondary);}
+.action-items{margin-top:10px;border-top:0.5px solid var(--color-border);padding-top:10px;display:none;flex-direction:column;gap:7px;}
+.action-items.open{display:flex;}
+.action-row{display:flex;align-items:center;gap:8px;}
+.action-row input[type=checkbox]{width:14px;height:14px;cursor:pointer;accent-color:var(--color-text-primary);flex-shrink:0;}
+.action-row label{font-size:12px;color:var(--color-text-secondary);cursor:pointer;line-height:1.4;}
+.action-row label.done{text-decoration:line-through;color:var(--color-text-tertiary);}
+.next-steps-box{margin-top:10px;background:#EEEDFE;border-left:3px solid #534AB7;border-radius:0 var(--radius-md) var(--radius-md) 0;padding:8px 12px;}
+.next-steps-label{font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:0.07em;color:#534AB7;margin-bottom:3px;}
+.next-steps-text{font-size:12px;color:#3C3489;line-height:1.5;white-space:pre-wrap;}
+.comments-section{margin-top:12px;border-top:0.5px solid var(--color-border);padding-top:10px;}
+.comments-list{display:flex;flex-direction:column;gap:8px;margin-bottom:10px;}
+.comment-item{display:flex;gap:9px;align-items:flex-start;}
+.comment-avatar{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:500;flex-shrink:0;margin-top:1px;}
+.comment-bubble{flex:1;background:var(--color-bg-secondary);border-radius:0 var(--radius-md) var(--radius-md) var(--radius-md);padding:7px 10px;}
+.comment-meta{display:flex;align-items:baseline;gap:6px;margin-bottom:3px;flex-wrap:wrap;}
+.comment-name{font-size:12px;font-weight:500;color:var(--color-text-primary);}
+.comment-time{font-size:10px;color:var(--color-text-tertiary);margin-left:auto;}
+.comment-text{font-size:12px;color:var(--color-text-secondary);line-height:1.5;}
+.no-comments{font-size:12px;color:var(--color-text-tertiary);font-style:italic;margin-bottom:8px;}
+.comment-item{position:relative;}
+.comment-item:hover .del-comment-btn{opacity:1;}
+.del-comment-btn{opacity:0;position:absolute;top:2px;right:0;background:none;border:none;cursor:pointer;color:var(--color-text-tertiary);font-size:14px;line-height:1;padding:2px 5px;transition:opacity 0.15s,color 0.15s;}
+.del-comment-btn:hover{color:#A32D2D;}
+.add-comment-row{display:flex;gap:7px;align-items:flex-start;}
+.add-comment-inputs{flex:1;display:flex;flex-direction:column;gap:5px;}
+.tag-picker-row{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:4px;}
+.picker-tag{display:inline-flex;align-items:center;padding:4px 12px;border-radius:20px;font-size:12px;font-weight:500;cursor:pointer;border:2px solid transparent;transition:all 0.15s;font-family:var(--font-sans);}
+.picker-tag.selected{border-color:var(--color-text-primary);}
+.picker-tag:hover{opacity:0.8;}
+.sel-display{min-height:24px;margin-bottom:4px;}
+.stag{display:inline-flex;align-items:center;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:500;}
+.cmt-input{width:100%;font-size:12px;padding:6px 9px;border-radius:var(--radius-md);border:0.5px solid var(--color-border-hover);background:var(--color-bg);color:var(--color-text-primary);resize:none;font-family:var(--font-sans);outline:none;}
+.cmt-input:focus{border-color:var(--color-text-tertiary);}
+.post-btn{padding:7px 16px;font-size:12px;border-radius:var(--radius-md);cursor:pointer;border:0.5px solid var(--color-border-hover);background:var(--color-text-primary);color:var(--color-bg);white-space:nowrap;align-self:flex-end;font-family:var(--font-sans);transition:opacity 0.15s;}
+.post-btn:hover{opacity:0.85;}
+.add-project-btn{width:100%;padding:11px;border:0.5px dashed var(--color-border-hover);border-radius:var(--radius-lg);background:none;font-size:13px;color:var(--color-text-tertiary);cursor:pointer;transition:all 0.15s;font-family:var(--font-sans);margin-bottom:2rem;}
+.add-project-btn:hover{border-color:var(--color-text-tertiary);color:var(--color-text-secondary);background:var(--color-bg);}
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.35);z-index:100;align-items:center;justify-content:center;padding:1rem;}
+.modal-overlay.open{display:flex;}
+.modal{background:var(--color-bg);border:0.5px solid var(--color-border-hover);border-radius:var(--radius-lg);padding:22px;width:100%;max-width:440px;max-height:90vh;overflow-y:auto;}
+.modal h2{font-size:16px;font-weight:500;margin-bottom:16px;color:var(--color-text-primary);}
+.field{margin-bottom:12px;}
+.field label{font-size:12px;color:var(--color-text-secondary);display:block;margin-bottom:5px;}
+.field input,.field select,.field textarea{width:100%;font-size:13px;padding:8px 10px;border-radius:var(--radius-md);border:0.5px solid var(--color-border-hover);background:var(--color-bg-secondary);color:var(--color-text-primary);font-family:var(--font-sans);outline:none;}
+.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--color-text-tertiary);}
+.field textarea{min-height:64px;resize:vertical;}
+.field input[type=range]{padding:0;border:none;background:none;}
+.progress-field{display:flex;align-items:center;gap:10px;}
+.progress-field input[type=range]{flex:1;}
+.progress-field span{font-size:13px;font-weight:500;min-width:36px;color:var(--color-text-primary);}
+.modal-btns{display:flex;gap:8px;justify-content:flex-end;margin-top:18px;}
+.modal-btns button{padding:8px 18px;font-size:13px;border-radius:var(--radius-md);cursor:pointer;border:0.5px solid var(--color-border-hover);background:transparent;color:var(--color-text-primary);font-family:var(--font-sans);transition:all 0.15s;}
+.modal-btns button:hover{background:var(--color-bg-secondary);}
+.modal-btns .primary{background:var(--color-text-primary);color:var(--color-bg);border-color:var(--color-text-primary);}
+.modal-btns .primary:hover{opacity:0.88;}
+.mm-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.3);z-index:200;}
+.mm-overlay.open{display:block;}
+.mm-modal{display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:var(--color-bg);border:0.5px solid var(--color-border-hover);border-radius:var(--radius-lg);padding:22px;width:100%;max-width:340px;z-index:201;}
+.mm-modal.open{display:block;}
+.mm-title{font-size:15px;font-weight:500;margin-bottom:14px;color:var(--color-text-primary);}
+.mm-field{margin-bottom:10px;}
+.mm-field label{font-size:12px;color:var(--color-text-secondary);display:block;margin-bottom:4px;}
+.mm-field input{width:100%;font-size:13px;padding:7px 10px;border-radius:var(--radius-md);border:0.5px solid var(--color-border-hover);background:var(--color-bg-secondary);color:var(--color-text-primary);font-family:var(--font-sans);outline:none;}
+.color-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:4px;}
+.cswatch{width:24px;height:24px;border-radius:50%;cursor:pointer;border:2px solid transparent;transition:border-color 0.15s;}
+.cswatch.sel{border-color:var(--color-text-primary);}
+.mm-btns{display:flex;gap:8px;justify-content:flex-end;margin-top:14px;}
+.mm-btns button{padding:7px 16px;font-size:13px;border-radius:var(--radius-md);cursor:pointer;border:0.5px solid var(--color-border-hover);background:transparent;color:var(--color-text-primary);font-family:var(--font-sans);}
+.mm-btns .primary{background:var(--color-text-primary);color:var(--color-bg);}
+footer{text-align:center;font-size:11px;color:var(--color-text-tertiary);padding-top:1rem;}
+</style>
+</head>
+<body>
+<div class="wrapper">
+  <div class="top-bar">
+    <div>
+      <h1>APAC payment providers tracker</h1>
+      <p id="subtitle">Showing all projects</p>
+    </div>
+    <div class="filters" id="filters">
+      <button class="filter-btn active" data-filter="all">All</button>
+      <button class="filter-btn" data-filter="critical">Critical</button>
+      <button class="filter-btn" data-filter="high">High priority</button>
+      <button class="filter-btn" data-filter="blocked">Blocked</button>
+      <button class="filter-btn" data-filter="inprog">In progress</button>
+    </div>
+  </div>
+
+  <div class="metrics">
+    <div class="metric"><div class="metric-label">Total projects</div><div class="metric-val" id="m-total">0</div></div>
+    <div class="metric"><div class="metric-label">Critical / high</div><div class="metric-val" id="m-critical">0</div><div class="metric-sub">need attention</div></div>
+    <div class="metric"><div class="metric-label">In progress</div><div class="metric-val" id="m-inprog">0</div></div>
+    <div class="metric"><div class="metric-label">Blocked</div><div class="metric-val" id="m-blocked">0</div></div>
+    <div class="metric"><div class="metric-label">Completed</div><div class="metric-val" id="m-done">0</div></div>
+  </div>
+
+  <div class="team-bar">
+    <span class="team-bar-label">Team</span>
+    <div id="team-tags-display"></div>
+    <button class="add-member-btn" onclick="openMM()">+ Add member</button>
+  </div>
+
+  <div class="section-label">Projects</div>
+  <div class="project-list" id="project-list"></div>
+  <button class="add-project-btn" id="add-btn">+ Add project</button>
+  <footer>APAC Payment Providers Tracker &mdash; open in any browser &mdash; no login required</footer>
+</div>
+
+<div class="mm-overlay" id="mm-overlay" onclick="closeMM()"></div>
+<div class="mm-modal" id="mm-modal">
+  <div class="mm-title">Add team member</div>
+  <div class="mm-field"><label>Name</label><input id="mm-name" placeholder="e.g. Sarah"/></div>
+  <div class="mm-field"><label>Role (optional)</label><input id="mm-role" placeholder="e.g. Director"/></div>
+  <div class="mm-field"><label>Colour</label><div class="color-row" id="color-row"></div></div>
+  <div class="mm-btns">
+    <button onclick="closeMM()">Cancel</button>
+    <button class="primary" onclick="saveMember()">Add</button>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal">
+  <div class="modal">
+    <h2 id="modal-title">Add project</h2>
+    <div class="field"><label>Project name</label><input id="f-name" placeholder="e.g. PayNow Integration"/></div>
+    <div class="field"><label>Owner</label><input id="f-owner" placeholder="Name"/></div>
+    <div class="field"><label>Priority</label>
+      <select id="f-priority">
+        <option value="critical">Critical</option>
+        <option value="high">High</option>
+        <option value="medium" selected>Medium</option>
+        <option value="low">Low</option>
+      </select>
+    </div>
+    <div class="field"><label>Status</label>
+      <select id="f-status">
+        <option value="todo">To do</option>
+        <option value="inprog" selected>In progress</option>
+        <option value="review">In review</option>
+        <option value="blocked">Blocked</option>
+        <option value="done">Done</option>
+      </select>
+    </div>
+    <div class="field"><label>Progress (%)</label>
+      <div class="progress-field">
+        <input type="range" id="f-progress" min="0" max="100" value="0" step="5" oninput="document.getElementById('f-progress-out').textContent=this.value+'%'"/>
+        <span id="f-progress-out">0%</span>
+      </div>
+    </div>
+    <div class="field"><label>Deadline</label><input type="date" id="f-deadline"/></div>
+    <div class="field"><label>Date engaged</label><input type="date" id="f-engaged"/></div>
+    <div class="field"><label>Discussion notes / key details</label><textarea id="f-notes" placeholder="Summarise key points from your last discussion..."></textarea></div>
+    <div class="field"><label>Next steps / comments</label><textarea id="f-nextsteps" placeholder="e.g. Following up with legal this week..."></textarea></div>
+    <div class="field"><label>Action items (one per line)</label><textarea id="f-actions" placeholder="Review proposal&#10;Send updated deck&#10;Schedule follow-up"></textarea></div>
+    <div class="modal-btns">
+      <button id="modal-cancel">Cancel</button>
+      <button class="primary" id="modal-save">Save project</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const PRIORITY_MAP={critical:'Critical',high:'High',medium:'Medium',low:'Low'};
+const STATUS_MAP={todo:'To do',inprog:'In progress',review:'In review',blocked:'Blocked',done:'Done'};
+const MCOLORS=[
+  {bg:'#EEEDFE',text:'#534AB7'},
+  {bg:'#E1F5EE',text:'#0F6E56'},
+  {bg:'#FAEEDA',text:'#854F0B'},
+  {bg:'#FAECE7',text:'#993C1D'},
+  {bg:'#E6F1FB',text:'#185FA5'},
+  {bg:'#EAF3DE',text:'#3B6D11'},
+  {bg:'#FBEAF0',text:'#993556'},
+  {bg:'#F1EFE8',text:'#5F5E5A'},
+];
+let selColorIdx=0;
+let selCommenters={};
+let activeFilter='all';
+let editingId=null;
+
+let teamMembers=[
+  {id:'m1',name:'Faisal',role:'',color:MCOLORS[0]},
+  {id:'m2',name:'Yaki',role:'',color:MCOLORS[1]},
+  {id:'m3',name:'Noah',role:'',color:MCOLORS[2]},
+];
+
+let projects=[
+  {id:1,name:'WISE Incoming Wires',owner:'',priority:'high',status:'todo',deadline:'',progress:20,
+   engaged:'',notes:'Issue: WISE transfers arrive with incomplete remittance info (missing sender name or reference). Ops must manually request Proof of Payment from clients, causing delays. No automated fix yet — solution design still needed.',
+   nextsteps:'1. Define alternative identification method for incomplete WISE transfers. 2. Explore improved data capture from JPM/WISE. 3. Decision needed: what is acceptable ID if sender name/ref missing?',comments:[],
+   actions:[{text:'Improve data capture for incoming WISE transfers',done:false},{text:'Define alternative identification method (non-membership ID)',done:false},{text:'Decision needed: alternative identification method or improved data capture?',done:false}]},
+  {id:2,name:'ACME Technology (eGIRO)',owner:'',priority:'low',status:'todo',deadline:'',progress:10,
+   engaged:'2024-03-24',notes:'eGIRO integration with ACME Technology — status unknown. Last update: 24 Mar 2026. No follow-up received. Low urgency but blocking forward planning.',
+   nextsteps:'1. Chase ACME for status update on eGIRO integration. 2. Confirm if initiative is still active or formally paused.',comments:[],
+   actions:[{text:'Confirm if eGIRO initiative is still active or on hold',done:false},{text:'Request status update from ACME Technology team',done:false}]},
+  {id:3,name:'Interpolitan / PayNow — NDA Entity',owner:'Faisal',priority:'critical',status:'review',deadline:'',progress:75,
+   engaged:'2026-04-13',
+   notes:'Provider: Interpolitan Money (FCA-regulated EMI, funds held at Barclays). Use case: SG PayNow → UK settlement flow (Taiwan not viable — no local rails). NDA: eToro template shared; Interpolitan flagged clause 2.3 (regulatory disclosure rights). Revised wording agreed. Legal (Elizaveta) approved 11 May 2026. Awaiting Interpolitan countersignature.',
+   nextsteps:'1. Interpolitan to sign NDA with approved clause 2.3 and return to Elizaveta for countersignature. 2. Once signed → request commercial proposal (pricing, timelines, PayNow → UK flow). 3. Schedule follow-up call with Noah on technical flow.',
+   comments:[
+     {name:'Faisal',text:'17 Apr: Intro call done. FCA-regulated EMI, funds at Barclays. Not suitable for Taiwan (no local rails) but PayNow → UK flow looks promising.',time:'17 Apr 2026',color:{bg:'#EEEDFE',text:'#534AB7'}},
+     {name:'Faisal',text:'20 Apr: Interpolitan sent NDA. Waiting on entity confirmation from Noah/Yaki.',time:'20 Apr 2026',color:{bg:'#EEEDFE',text:'#534AB7'}},
+     {name:'Noah',text:'20 Apr: NDA should be under eToro Group or eToro BVI.',time:'20 Apr 2026',color:{bg:'#E1F5EE',text:'#0F6E56'}},
+     {name:'Yaki',text:'22 Apr: Use eToro Group/BVI entity — same as used in previous NDAs. No need to involve eToro UK yet.',time:'22 Apr 2026',color:{bg:'#FAEEDA',text:'#854F0B'}},
+     {name:'Faisal',text:'4 May: Sent eToro standard NDA to Interpolitan. Looped in Elizaveta (legal).',time:'4 May 2026',color:{bg:'#EEEDFE',text:'#534AB7'}},
+     {name:'Faisal',text:'6 May: Interpolitan flagged clause 2.3 — needs freedom to report to regulators without approval (UK POCA 2002). Elizaveta asked them to share proposed wording.',time:'6 May 2026',color:{bg:'#EEEDFE',text:'#534AB7'}},
+     {name:'Faisal',text:'7 May: Interpolitan shared revised clause 2.3 wording. Elizaveta reviewing with legal team.',time:'7 May 2026',color:{bg:'#EEEDFE',text:'#534AB7'}},
+     {name:'Faisal',text:'11 May: Elizaveta confirmed clause 2.3 amendment approved. Waiting for Interpolitan to countersign and return NDA.',time:'11 May 2026',color:{bg:'#EEEDFE',text:'#534AB7'}}
+   ],
+   actions:[
+     {text:'Interpolitan to sign NDA and return to Elizaveta for countersignature',done:false},
+     {text:'Once NDA signed — request commercial proposal (PayNow → UK flow)',done:false},
+     {text:'Schedule follow-up call with Noah on technical and payment flow',done:false}
+   ]},
+  {id:4,name:'AsiaPay / Taiwan — Crypto Restriction',owner:'Faisal',priority:'high',status:'inprog',deadline:'',progress:45,
+   engaged:'2025-08-17',
+   notes:'Provider: AsiaPay (NDA signed Feb 2026). Goal: Enable LINE Pay + JKOPay for Taiwan deposits via cross-border setup through APSG (Singapore). Key blocker: Both wallets restrict funds used for crypto. LINE Pay: cross-border onboarding opens post-June 2026, crypto restriction not yet confirmed. JKOPay: confirmed crypto restriction (central bank regulation). Taiwan volume: ~USD 42M/year deposits; crypto = ~15% of holdings. Strategy (Yaki, 24 Apr): Focus on LINE Pay first (no confirmed crypto restriction), JKOPay as fallback. Not willing to drop real crypto for 15% revenue.',
+   nextsteps:'1. Wait for LINE Pay cross-border onboarding to open post-June 2026. 2. Confirm with Yaki/Noah: proceed with LINE Pay only (no confirmed crypto restriction) OR also pursue JKOPay with non-crypto flow. 3. Begin APSG onboarding once direction confirmed. 4. Monitor JKOPay crypto restriction implementation details.',
+   comments:[
+     {name:'Noah',text:'Aug 2025: Initial outreach to AsiaPay (Terrence Chow) — #1 priority is Taiwan APMs: LINE Pay, JKOPay, local NTD transfers.',time:'17 Aug 2025',color:{bg:'#E1F5EE',text:'#0F6E56'}},
+     {name:'Noah',text:'Feb 2026: NDA process completed. Elizaveta countersigned NDA on behalf of eToro.',time:'24 Feb 2026',color:{bg:'#E1F5EE',text:'#0F6E56'}},
+     {name:'Faisal',text:'1 Apr: Shared Taiwan volume projections — 2026 YTD USD 7.3M deposits / USD 8.1M cashouts. Steady-state ~USD 3-4M/month deposits.',time:'1 Apr 2026',color:{bg:'#EEEDFE',text:'#534AB7'}},
+     {name:'Yaki',text:'1 Apr: Added that eToro has started working with Taiwan affiliates — will drive more FTDs and fresh funds.',time:'1 Apr 2026',color:{bg:'#FAEEDA',text:'#854F0B'}},
+     {name:'Faisal',text:'8 Apr: AsiaPay confirmed: LINE Pay cross-border onboarding only available post-June 2026. JKOPay interested but restricts crypto as regulated by central bank.',time:'8 Apr 2026',color:{bg:'#EEEDFE',text:'#534AB7'}},
+     {name:'Faisal',text:'10 Apr: AsiaPay (Aries) clarified: JKOPay requires merchant to prove funds cannot be used for crypto. LINE Pay still under evaluation. Cross-border via APSG requires full KYC/KYB + wallet approvals.',time:'10 Apr 2026',color:{bg:'#EEEDFE',text:'#534AB7'}},
+     {name:'Noah',text:'14 Apr: Asked key question — crypto is only 15% of Taiwan holdings. What if we stopped real crypto (leave CFD only) in Taiwan and in exchange enable LINE Pay/JKOPay?',time:'14 Apr 2026',color:{bg:'#E1F5EE',text:'#0F6E56'}},
+     {name:'Yaki',text:'14 Apr: Concern raised — how do you police where funds go once co-mingled? Declaration-based approach will not hold up.',time:'14 Apr 2026',color:{bg:'#FAEEDA',text:'#854F0B'}},
+     {name:'Faisal',text:'15 Apr: Analysis shared — removing real crypto for Taiwan (keeping CFDs) is cleanest approach. Depends on deposit uplift from LINE Pay/JKOPay vs revenue contribution of real crypto.',time:'15 Apr 2026',color:{bg:'#EEEDFE',text:'#534AB7'}},
+     {name:'Faisal',text:'23 Apr: Taiwan FSC research — no official coin whitelist. Local exchanges (MAX, BitoPro) support BTC, ETH, USDT, SOL etc. Constraint is not which coins are banned but whether funds can be used for crypto at all.',time:'23 Apr 2026',color:{bg:'#EEEDFE',text:'#534AB7'}},
+     {name:'Yaki',text:'24 Apr: Decision — only JKOPay has confirmed crypto restriction. LINE Pay has NOT confirmed it yet, and timeline is June to start discussions. Suggest: focus on LINE Pay, keep JKOPay as fallback. 15% is too significant to drop real crypto.',time:'24 Apr 2026',color:{bg:'#FAEEDA',text:'#854F0B'}}
+   ],
+   actions:[
+     {text:'Wait for LINE Pay cross-border onboarding post-June 2026',done:false},
+     {text:'Decision needed: proceed with LINE Pay only (no crypto restriction confirmed) vs JKOPay non-crypto flow',done:false},
+     {text:'Compare Taiwan FSC coin framework vs eToro platform crypto offerings',done:false},
+     {text:'Begin APSG onboarding process once direction confirmed',done:false}
+   ]},
+  {id:5,name:'Coda Payments (Taiwan)',owner:'Faisal',priority:'low',status:'blocked',deadline:'',progress:20,
+   engaged:'2026-03-03',
+   notes:'Provider: Coda Payments (introduced via Yuno/Leslie). Explored for Taiwan local payment collection. Blocker: Coda required Taiwan-specific legal opinion — eToro only has regional Ashurst opinion (tolerated market practice, not clean sign-off). Coda declined to proceed. Re-engaged 28 Apr with IBKR/Wise flow reference — no response. Likely disengaged due to compliance risk appetite mismatch.',
+   nextsteps:'1. Formally close Coda engagement if no reply by end of May. 2. Redirect Taiwan PSP efforts to Yuno/Leslie pipeline.',
+   comments:[
+     {name:'Faisal',text:'3 Mar: Shared Ashurst regional legal opinion. Coda requested a formal Taiwan-specific opinion from local counsel — which eToro does not have.',time:'3 Mar 2026',color:{bg:'#EEEDFE',text:'#534AB7'}},
+     {name:'Faisal',text:'16 Mar: Shared third-party payment model framework (Ecommpay omnibus structure) as reference for how Taiwan flow could work.',time:'16 Mar 2026',color:{bg:'#EEEDFE',text:'#534AB7'}},
+     {name:'Faisal',text:'26 Mar: Confirmed internally — Taiwan not feasible with Coda. They need strict Taiwan legal sign-off eToro cannot provide.',time:'26 Mar 2026',color:{bg:'#EEEDFE',text:'#534AB7'}},
+     {name:'Faisal',text:'28 Apr: Re-engaged with IBKR/Wise flow reference (TWD to Wise to FX to IBKR). Asked if this changes their risk view. No response received to date.',time:'28 Apr 2026',color:{bg:'#EEEDFE',text:'#534AB7'}},
+     {name:'Yaki',text:'Coda likely disengaged — their compliance bar is higher than what our current legal position supports. Redirect to PSPs with higher risk appetite.',time:'May 2026',color:{bg:'#FAEEDA',text:'#854F0B'}}
+   ],
+   actions:[
+     {text:'Formally close Coda engagement if no response received',done:false},
+     {text:'Redirect Taiwan PSP search to higher risk-appetite providers via Leslie (Yuno)',done:false}
+   ]},
+  {id:6,name:'Yuno / Boku — Taiwan PSP Search',owner:'Faisal',priority:'high',status:'inprog',deadline:'',progress:30,
+   engaged:'2026-04-09',
+   notes:'Contact: Leslie Lim (Yuno, Payment Director). Purpose: Source Taiwan PSPs with higher risk appetite for eToro Ashurst legal opinion (tolerated market practice basis). Leslie engaged Boku who surveyed Taiwan wallet providers (12 May). Boku feedback: JKOPay — feasible if non-crypto only; PXPay Plus — not feasible; LINE Pay — under assessment; WCP/WCP HK — not feasible. Open question (Yaki, 12 May): Wise supports IBKR Taiwan payments despite crypto restrictions — why not JKO/LINE? Awaiting Boku/Leslie response.',
+   nextsteps:'1. Await Boku/Leslie response on Yaki Wise vs IBKR question. 2. Assess JKO Pay viability with non-crypto carve-out. 3. Ask Leslie to source additional high risk-appetite PSPs for Taiwan pipeline.',
+   comments:[
+     {name:'Faisal',text:'9 Apr: Leslie (Yuno) reached out to connect eToro with PSPs across APAC/European markets following Coda outcome.',time:'9 Apr 2026',color:{bg:'#EEEDFE',text:'#534AB7'}},
+     {name:'Yaki',text:'10 Apr: Keep focus on Taiwan. Same Ashurst paper accepted by a Malaysian PSP — launching third-party payment solution there this month. Need higher risk-appetite PSPs.',time:'10 Apr 2026',color:{bg:'#FAEEDA',text:'#854F0B'}},
+     {name:'Faisal',text:'22 Apr: Leslie introduced Boku as potential partner. Boku requested copy of legal opinion before proceeding.',time:'22 Apr 2026',color:{bg:'#EEEDFE',text:'#534AB7'}},
+     {name:'Faisal',text:'8 May: Flagged to Leslie — our legal opinion is tolerated market practice only, not a clean sign-off. Advised to check informally with Boku before NDA process.',time:'8 May 2026',color:{bg:'#EEEDFE',text:'#534AB7'}},
+     {name:'Faisal',text:'12 May: Boku shared wallet provider feedback. JKO Pay feasible if non-crypto; PXPay Plus not feasible; LINE Pay under assessment; WCP not feasible.',time:'12 May 2026',color:{bg:'#EEEDFE',text:'#534AB7'}},
+     {name:'Yaki',text:'12 May: Wise supports IBKR with local Taiwan payments despite crypto restrictions — why can JKO and LINE not do the same? Awaiting Leslie/Boku response.',time:'12 May 2026',color:{bg:'#FAEEDA',text:'#854F0B'}}
+   ],
+   actions:[
+     {text:'Await Leslie/Boku response on Wise/IBKR vs JKO Pay comparison',done:false},
+     {text:'Assess if JKO Pay or LINE Pay viable with non-crypto carve-out',done:false},
+     {text:'Ask Leslie to source additional high risk-appetite PSPs for Taiwan',done:false}
+   ]}
+];
+
+function ini(name){return name.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);}
+function avCol(name){return MCOLORS[(name.charCodeAt(0)+name.length)%MCOLORS.length];}
+function pColor(s){return s==='done'?'#639922':s==='blocked'?'#E24B4A':'#378ADD';}
+function deadlineInfo(d,status){
+  if(!d||status==='done') return null;
+  const days=Math.ceil((new Date(d)-new Date())/(1000*60*60*24));
+  const fmt=new Date(d).toLocaleDateString('en-GB',{day:'numeric',month:'short'});
+  if(days<0) return {text:'Overdue by '+Math.abs(days)+'d',overdue:true};
+  if(days===0) return {text:'Due today',overdue:true};
+  if(days<=3) return {text:'Due in '+days+'d ('+fmt+')',overdue:true};
+  return {text:'Due '+fmt,overdue:false};
+}
+
+function renderTeamBar(){
+  document.getElementById('team-tags-display').innerHTML=teamMembers.map(m=>
+    '<span class="team-tag" style="background:'+m.color.bg+';color:'+m.color.text+';">'+m.name+'</span>'
+  ).join('');
+}
+
+function renderTagPicker(pid){
+  return teamMembers.map(m=>
+    '<span class="picker-tag" style="background:'+m.color.bg+';color:'+m.color.text+';" id="pt-'+pid+'-'+m.id+'" onclick="toggleC('+pid+',\''+m.id+'\')">'+m.name+'</span>'
+  ).join('');
+}
+
+function toggleC(pid,mid){
+  selCommenters[pid]=(selCommenters[pid]===mid)?null:mid;
+  teamMembers.forEach(function(m){
+    var el=document.getElementById('pt-'+pid+'-'+m.id);
+    if(el) el.classList.toggle('selected',selCommenters[pid]===m.id);
+  });
+  var sd=document.getElementById('sd-'+pid);
+  if(sd){
+    var sel=teamMembers.find(function(m){return m.id===selCommenters[pid];});
+    sd.innerHTML=sel
+      ?'<span class="stag" style="background:'+sel.color.bg+';color:'+sel.color.text+';">'+sel.name+'</span>'
+      :'<span style="font-size:12px;color:var(--color-text-tertiary);">Select who is commenting...</span>';
+  }
+}
+
+function postComment(pid){
+  var mid=selCommenters[pid];
+  var member=teamMembers.find(function(m){return m.id===mid;});
+  var el=document.getElementById('ct-'+pid);
+  if(!el||!el.value.trim()){alert('Please write a comment.');return;}
+  if(!member){alert('Please select a team member first.');return;}
+  var p=projects.find(function(x){return x.id===pid;});
+  if(!p) return;
+  if(!p.comments) p.comments=[];
+  var now=new Date();
+  var time=now.toLocaleDateString('en-GB',{day:'numeric',month:'short'})+' '+now.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
+  p.comments.push({name:member.name,text:el.value.trim(),time:time,color:member.color});
+  selCommenters[pid]=null;
+  renderCards();
+}
+
+function toggleActions(id){
+  var el=document.getElementById('ai-'+id);
+  if(el) el.classList.toggle('open');
+}
+function toggleAction(pid,idx,val){
+  var p=projects.find(function(x){return x.id===pid;});
+  if(p&&p.actions[idx]){
+    p.actions[idx].done=val;
+    var lbl=document.querySelector('label[for="ac-'+pid+'-'+idx+'"]');
+    if(lbl) lbl.classList.toggle('done',val);
+  }
+}
+function deleteProject(id){
+  if(confirm('Remove this project?')){projects=projects.filter(function(p){return p.id!==id;});renderCards();}
+}
+
+function openEdit(id){
+  var p=projects.find(function(x){return x.id===id;});
+  if(!p) return;
+  editingId=id;
+  document.getElementById('modal-title').textContent='Edit project';
+  document.getElementById('f-name').value=p.name;
+  document.getElementById('f-owner').value=p.owner;
+  document.getElementById('f-priority').value=p.priority;
+  document.getElementById('f-status').value=p.status;
+  document.getElementById('f-progress').value=p.progress;
+  document.getElementById('f-progress-out').textContent=p.progress+'%';
+  document.getElementById('f-deadline').value=p.deadline||'';
+  document.getElementById('f-engaged').value=p.engaged||'';
+  document.getElementById('f-notes').value=p.notes||'';
+  document.getElementById('f-nextsteps').value=p.nextsteps||'';
+  document.getElementById('f-actions').value=(p.actions||[]).map(function(a){return a.text;}).join('\n');
+  document.getElementById('modal').classList.add('open');
+}
+
+function openMM(){
+  document.getElementById('mm-name').value='';
+  document.getElementById('mm-role').value='';
+  selColorIdx=0;
+  document.getElementById('color-row').innerHTML=MCOLORS.map(function(c,i){
+    return '<div class="cswatch '+(i===0?'sel':'')+'" style="background:'+c.bg+';border-color:'+(i===0?'#534AB7':'transparent')+';" onclick="selColor('+i+')" id="sw-'+i+'"></div>';
+  }).join('');
+  document.getElementById('mm-modal').classList.add('open');
+  document.getElementById('mm-overlay').classList.add('open');
+}
+function closeMM(){
+  document.getElementById('mm-modal').classList.remove('open');
+  document.getElementById('mm-overlay').classList.remove('open');
+}
+function selColor(idx){
+  selColorIdx=idx;
+  MCOLORS.forEach(function(_,i){
+    var sw=document.getElementById('sw-'+i);
+    if(sw){sw.classList.toggle('sel',i===idx);sw.style.borderColor=i===idx?'#534AB7':'transparent';}
+  });
+}
+function saveMember(){
+  var name=document.getElementById('mm-name').value.trim();
+  if(!name){alert('Please enter a name.');return;}
+  teamMembers.push({id:'m'+Date.now(),name:name,role:document.getElementById('mm-role').value.trim(),color:MCOLORS[selColorIdx]});
+  closeMM();
+  renderTeamBar();
+  renderCards();
+}
+
+function deleteComment(pid, idx){
+  if(!confirm('Delete this comment?')) return;
+  var p=projects.find(function(x){return x.id===pid;});
+  if(p&&p.comments){
+    p.comments.splice(idx,1);
+    renderCards();
+  }
+}
+function renderCards(){
+  var filtered=projects.slice();
+  if(activeFilter==='critical') filtered=projects.filter(function(p){return p.priority==='critical';});
+  else if(activeFilter==='high') filtered=projects.filter(function(p){return p.priority==='critical'||p.priority==='high';});
+  else if(activeFilter==='blocked') filtered=projects.filter(function(p){return p.status==='blocked';});
+  else if(activeFilter==='inprog') filtered=projects.filter(function(p){return p.status==='inprog';});
+  var po={critical:0,high:1,medium:2,low:3};
+  filtered.sort(function(a,b){return po[a.priority]-po[b.priority];});
+
+  document.getElementById('m-total').textContent=projects.length;
+  document.getElementById('m-critical').textContent=projects.filter(function(p){return p.priority==='critical'||p.priority==='high';}).length;
+  document.getElementById('m-inprog').textContent=projects.filter(function(p){return p.status==='inprog';}).length;
+  document.getElementById('m-blocked').textContent=projects.filter(function(p){return p.status==='blocked';}).length;
+  document.getElementById('m-done').textContent=projects.filter(function(p){return p.status==='done';}).length;
+  document.getElementById('subtitle').textContent=projects.length+' projects · '+projects.filter(function(p){return p.status==='done';}).length+' completed';
+
+  document.getElementById('project-list').innerHTML=filtered.map(function(p){
+    var doneC=(p.actions||[]).filter(function(a){return a.done;}).length;
+    var totA=(p.actions||[]).length;
+    var dl=deadlineInfo(p.deadline,p.status);
+    var engFmt=p.engaged?new Date(p.engaged).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'}):'';
+    var actHTML=(p.actions||[]).map(function(a,i){
+      return '<div class="action-row"><input type="checkbox" id="ac-'+p.id+'-'+i+'" '+(a.done?'checked':'')+' onchange="toggleAction('+p.id+','+i+',this.checked)"><label for="ac-'+p.id+'-'+i+'" class="'+(a.done?'done':'')+'">'+a.text+'</label></div>';
+    }).join('');
+    var commHTML=(p.comments&&p.comments.length)?p.comments.map(function(c,ci){
+      return '<div class="comment-item" style="position:relative;">' +
+        '<div class="comment-avatar" style="background:'+(c.color?c.color.bg:'#EEEDFE')+';color:'+(c.color?c.color.text:'#534AB7')+';">' + ini(c.name) + '</div>' +
+        '<div class="comment-bubble">' +
+          '<div class="comment-meta">' +
+            '<span class="comment-name">' + c.name + '</span>' +
+            '<span class="comment-time">' + c.time + '</span>' +
+            '<button onclick="deleteComment(' + p.id + ',' + ci + ')" style="margin-left:auto;background:none;border:none;cursor:pointer;color:#A32D2D;font-size:11px;padding:0 2px;font-family:inherit;" title="Delete">Delete</button>' +
+          '</div>' +
+          '<div class="comment-text">' + c.text + '</div>' +
+        '</div>' +
+      '</div>';
+    }).join(''):'<div class="no-comments">No comments yet</div>';
+    var ac=p.owner?avCol(p.owner):null;
+    return '<div class="card">'+
+      '<div class="card-header">'+
+        '<div style="flex:1;min-width:0;">'+
+          '<div class="card-title">'+p.name+'</div>'+
+          (p.notes?'<div class="card-note">'+p.notes+'</div>':'')+
+          (p.nextsteps?'<div class="next-steps-box"><div class="next-steps-label">Next steps</div><div class="next-steps-text">'+p.nextsteps+'</div></div>':'')+
+        '</div>'+
+        '<div class="card-actions-top">'+
+          '<button class="icon-btn" onclick="openEdit('+p.id+')" title="Edit"><svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M11 2l3 3-9 9H2v-3L11 2z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/></svg></button>'+
+          '<button class="icon-btn" onclick="deleteProject('+p.id+')" title="Delete"><svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M3 4h10M6 4V2h4v2M5 4l.5 9h5l.5-9" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg></button>'+
+        '</div>'+
+      '</div>'+
+      '<div class="badges">'+
+        '<span class="badge badge-'+p.priority+'">'+PRIORITY_MAP[p.priority]+'</span>'+
+        '<span class="badge badge-status-'+p.status+'">'+STATUS_MAP[p.status]+'</span>'+
+      '</div>'+
+      '<div class="progress-bar"><div class="progress-fill" style="width:'+p.progress+'%;background:'+pColor(p.status)+'"></div></div>'+
+      '<div class="card-footer">'+
+        '<div class="owner-row">'+(ac?'<div class="av" style="background:'+ac.bg+';color:'+ac.text+';">'+ini(p.owner)+'</div>'+p.owner:'<span style="font-size:12px;color:var(--color-text-tertiary);">Unassigned</span>')+'</div>'+
+        '<div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;">'+
+          (engFmt?'<span style="font-size:12px;color:var(--color-text-tertiary);">Engaged: '+engFmt+'</span>':'')+
+          (dl?'<span style="font-size:12px;color:'+(dl.overdue?'#A32D2D':'var(--color-text-tertiary)')+(dl.overdue?';font-weight:500':'')+'">' +dl.text+'</span>':'')+
+          (totA?'<button class="toggle-actions-btn" onclick="toggleActions('+p.id+')">'+doneC+'/'+totA+' actions</button>':'')+
+        '</div>'+
+      '</div>'+
+      (totA?'<div class="action-items" id="ai-'+p.id+'">'+actHTML+'</div>':'')+
+      '<div class="comments-section">'+
+        '<div class="comments-list" id="cl-'+p.id+'">'+commHTML+'</div>'+
+        '<div class="add-comment-row">'+
+          '<div class="add-comment-inputs">'+
+            '<div class="tag-picker-row" id="tp-'+p.id+'">'+renderTagPicker(p.id)+'</div>'+
+            '<div class="sel-display" id="sd-'+p.id+'"><span style="font-size:12px;color:var(--color-text-tertiary);">Select who is commenting...</span></div>'+
+            '<textarea class="cmt-input" rows="2" placeholder="Add your comment or next step..." id="ct-'+p.id+'"></textarea>'+
+          '</div>'+
+          '<button class="post-btn" onclick="postComment('+p.id+')">Post</button>'+
+        '</div>'+
+      '</div>'+
+    '</div>';
+  }).join('');
+}
+
+document.getElementById('add-btn').onclick=function(){
+  editingId=null;
+  document.getElementById('modal-title').textContent='Add project';
+  ['f-name','f-owner','f-deadline','f-engaged','f-notes','f-nextsteps','f-actions'].forEach(function(id){document.getElementById(id).value='';});
+  document.getElementById('f-priority').value='medium';
+  document.getElementById('f-status').value='inprog';
+  document.getElementById('f-progress').value=0;
+  document.getElementById('f-progress-out').textContent='0%';
+  document.getElementById('modal').classList.add('open');
+};
+document.getElementById('modal-cancel').onclick=function(){document.getElementById('modal').classList.remove('open');};
+document.getElementById('modal').onclick=function(e){if(e.target===e.currentTarget) document.getElementById('modal').classList.remove('open');};
+document.getElementById('modal-save').onclick=function(){
+  var name=document.getElementById('f-name').value.trim();
+  if(!name){alert('Please enter a project name.');return;}
+  var actionsRaw=document.getElementById('f-actions').value.trim();
+  var actions=actionsRaw?actionsRaw.split('\n').filter(Boolean).map(function(t){return{text:t.trim(),done:false};}):[];
+  if(editingId){
+    var p=projects.find(function(x){return x.id===editingId;});
+    var oldActions=p.actions||[];
+    p.name=name;p.owner=document.getElementById('f-owner').value||'';
+    p.priority=document.getElementById('f-priority').value;p.status=document.getElementById('f-status').value;
+    p.progress=parseInt(document.getElementById('f-progress').value);
+    p.deadline=document.getElementById('f-deadline').value;p.engaged=document.getElementById('f-engaged').value;p.notes=document.getElementById('f-notes').value.trim();
+    p.nextsteps=document.getElementById('f-nextsteps').value.trim();
+    p.actions=actions.map(function(a,i){return{text:a.text,done:oldActions[i]?oldActions[i].done:false};});
+  } else {
+    projects.push({id:Date.now(),name:name,owner:document.getElementById('f-owner').value||'',
+      priority:document.getElementById('f-priority').value,status:document.getElementById('f-status').value,
+      progress:parseInt(document.getElementById('f-progress').value),
+      deadline:document.getElementById('f-deadline').value,engaged:document.getElementById('f-engaged').value,notes:document.getElementById('f-notes').value.trim(),
+      nextsteps:document.getElementById('f-nextsteps').value.trim(),comments:[],actions:actions});
+  }
+  document.getElementById('modal').classList.remove('open');
+  renderCards();
+};
+document.getElementById('filters').onclick=function(e){
+  var btn=e.target.closest('.filter-btn');
+  if(!btn) return;
+  document.querySelectorAll('.filter-btn').forEach(function(b){b.classList.remove('active');});
+  btn.classList.add('active');
+  activeFilter=btn.dataset.filter;
+  renderCards();
+};
+renderCards();
+renderTeamBar();
+</script>
+</body>
+</html>
